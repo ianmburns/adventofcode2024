@@ -50,10 +50,11 @@ foreach (var lookup in positionLookup.AsParallel())
             }
 
             // Find the least common multiple between the diffs
-            //Pythagourus
-            // z = 
+            //Pythagarus
+            var z = Math.Sqrt(Math.Pow(Math.Abs(position.X - antinode.X), 2) + Math.Pow(Math.Abs(position.Y - antinode.Y), 2));
+            // "Draw" a line from X edge to Y edge
+            // Bruteforce, but loop through all possible positions and see if is divisible by z
 
-            double z = Math.Sqrt(Math.Pow(Math.Abs(position.X - antinode.X), 2) + Math.Pow(Math.Abs(position.Y - antinode.Y), 2))
 
             // // part two, keep looping until we are out of bounds
             // while (antinode.Y >= 0
