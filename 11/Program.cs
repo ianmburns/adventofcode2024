@@ -4,52 +4,63 @@
 }
 
 var fileArg = args[0];
-
 var input = File.ReadAllText(fileArg).Split(' ').Select(long.Parse).ToArray();
 
-var amounts = input.Select(x => ApplyRules(x, 25)).SelectMany(_ => _);
+var amounts = ApplyRules(input, 75);
+Console.WriteLine(amounts);
 
-Console.WriteLine(amounts.Count());
-
-amounts = input.Select(x => ApplyRules(x, 75)).SelectMany(_ => _);
-Console.WriteLine(amounts.Count());
-
-
-static long[] ApplyRules(long value, int iterations)
+long ApplyRules(long[] seed, int iterations)
 {
-    if (iterations == 0)
+
+    var currentStoneCounter = new Dictionary<long, long>();
+    foreach (var item in seed)
     {
-        return [value];
+        currentStoneCounter.TryAdd(item, 0);
+        currentStoneCounter[item]++;
     }
 
-    // If the stone is engraved with the number 0, 
-    //  it is replaced by a stone engraved with the number 1.
-    // If the stone is engraved with a number that has an even number of digits,
-    //  it is replaced by two stones. The left half of the digits are engraved on the new left stone,
-    //  and the right half of the digits are engraved on the new right stone. (The new numbers don't keep extra leading zeroes: 1000 would become stones 10 and 0.)
-    // If none of the other rules apply, the stone is replaced by a new stone;
-    //  the old stone's number multiplied by 2024 is engraved on the new stone.
-
-
-    if (value == 0)
+    // For the amount of iterations
+    for (var i = 0; i < iterations; i++)
     {
-        return ApplyRules(1, iterations - 1);
+        // walk through each 'type' of rock and figure out how many of each next type of rock there will be
+        // use a copy of the dictionary so we don't overwrite
+        foreach (var (value, count) in currentStoneCounter.ToList())
+        {
+            // Remove stone count
+            currentStoneCounter[value] -= count;
+
+            // Add to counter based on rule
+            if (value == 0)
+            {
+                currentStoneCounter.TryAdd(1, 0);
+                currentStoneCounter[1] += count;
+            }
+            else if (value.ToString().Length % 2 == 0)
+            {
+                var valueAsString = value.ToString();
+
+                //Split string
+                int middleIndex = valueAsString.Length / 2;
+                var firstHalf = long.Parse(valueAsString[..middleIndex]);
+                var secondHalf = long.Parse(valueAsString[middleIndex..]);
+
+
+                currentStoneCounter.TryAdd(firstHalf, 0);
+                currentStoneCounter[firstHalf] += count;
+
+                currentStoneCounter.TryAdd(secondHalf, 0);
+                currentStoneCounter[secondHalf] += count;
+            }
+            else
+            {
+                var updated = value * 2024;
+                currentStoneCounter.TryAdd(updated, 0);
+                currentStoneCounter[updated] += count;
+            }
+        }
     }
 
-    // Maybe a better way to do this
-    var valueAsString = value.ToString();
-    if (valueAsString.Length % 2 == 0)
-    {
-        //Console.WriteLine(valueAsString);
-        //Split string
-        int middleIndex = valueAsString.Length / 2;
-        string firstHalf = valueAsString[..middleIndex];
-        string secondHalf = valueAsString[middleIndex..];
 
-        return [.. ApplyRules(long.Parse(firstHalf), iterations - 1)
-                , .. ApplyRules(long.Parse(secondHalf), iterations - 1)];
-    }
-
-    return ApplyRules(value * 2024, iterations - 1);
+    return currentStoneCounter.Select(_ => _.Value).Sum();
 }
 
